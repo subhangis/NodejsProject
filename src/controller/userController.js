@@ -1,7 +1,9 @@
 
 const User = require('../model/userModel')
 const {encryptPassword,decryptPassword} = require('../utils/crypto');
+const {sendEmail} = require('../utils/sendEmail');
 const jwt = require('jsonwebtoken');
+
 require("dotenv").config();
 
 
@@ -13,30 +15,33 @@ require("dotenv").config();
  };
 
 
-
-
-module.exports.createUser = async (req, res) => {
+ module.exports.createUser = async (req, res) => {
     try {
         const { name, email, password } = req.body;
 
-        // Check if user exists
-        let user = await User.findOne({ email });
-        if (user) {
-            return res.status(400).json({ message: "User already exists" });
+        if (!email) {
+            return res.status(400).json({ message: " Email is required" });
         }
 
-        // Hash password before saving
+        let user = await User.findOne({ email });
+        if (user) {
+            return res.status(400).json({ message: " User already exists" });
+        }
+
         const hashedPassword = await encryptPassword(password);
 
-        // Create new user with hashed password
         user = new User({ name, email, password: hashedPassword });
         await user.save();
 
+        // Send email notification
+        await sendEmail(email, "Welcome!", `Hello ${name}, your account has been created.`);
+
         res.status(200).json({ message: "User created successfully", user });
     } catch (error) {
-        res.status(500).json({ message: "Server error", error: error.message });
+        res.status(500).json({ message: " Server error", error: error.message });
     }
 };
+
 
 
 
