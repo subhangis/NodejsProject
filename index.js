@@ -63,6 +63,6 @@ mongoose
         });
     })
     .catch((error) => console.log("Database connection error:", error));
-
+    log.println(error)
 // Routes
 app.use("/", Fetchroutes);
